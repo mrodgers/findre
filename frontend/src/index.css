@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-gray-950 text-gray-100 antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+@layer components {
+  .score-ring {
+    @apply relative inline-flex items-center justify-center;
+  }
+  .chat-bubble {
+    @apply rounded-2xl px-4 py-3 max-w-[80%] text-sm leading-relaxed;
+  }
+  .chat-bubble-user {
+    @apply chat-bubble bg-brand-600 text-white ml-auto;
+  }
+  .chat-bubble-agent {
+    @apply chat-bubble bg-gray-800 text-gray-100;
+  }
+  .card {
+    @apply bg-gray-900 border border-gray-800 rounded-xl;
+  }
+  .btn-primary {
+    @apply px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-medium transition-colors;
+  }
+  .btn-ghost {
+    @apply px-4 py-2 hover:bg-gray-800 text-gray-300 rounded-lg font-medium transition-colors;
+  }
+}
+
+/* Leaflet overrides */
+.leaflet-container {
+  background: #111827 !important;
+  border-radius: 0.75rem;
+}
+.leaflet-control-attribution {
+  display: none;
+}
