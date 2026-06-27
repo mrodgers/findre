@@ -61,6 +61,13 @@ app.add_middleware(
 
 app.include_router(router, prefix="/api")
 
+# User guide — served before the SPA catch-all
+_userguide = Path(__file__).parent.parent / "docs" / "userguide.html"
+if _userguide.exists():
+    @app.get("/docs", include_in_schema=False)
+    async def serve_userguide():
+        return FileResponse(str(_userguide), media_type="text/html")
+
 # Serve frontend in production
 frontend_dist = Path(__file__).parent.parent / "frontend" / "dist"
 if frontend_dist.exists():

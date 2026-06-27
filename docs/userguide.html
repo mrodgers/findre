@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FindRE — User Guide</title>
+<style>
+  :root {
+    --bg: #030712;
+    --surface: #111827;
+    --surface2: #1f2937;
+    --border: #374151;
+    --text: #f9fafb;
+    --muted: #9ca3af;
+    --subtle: #6b7280;
+    --brand: #0ea5e9;
+    --brand-dim: #0c4a6e;
+    --green: #22c55e;
+    --green-dim: #14532d;
+    --blue: #3b82f6;
+    --blue-dim: #1e3a5f;
+    --amber: #f59e0b;
+    --amber-dim: #451a03;
+    --red: #ef4444;
+    --radius: 8px;
+    --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --mono: "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+
+  a { color: var(--brand); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: 100vh; }
+
+  nav {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 0;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .nav-logo-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: var(--brand);
+  }
+
+  .nav-logo-text { font-size: 16px; font-weight: 700; }
+
+  nav ul { list-style: none; }
+
+  nav ul li a {
+    display: block;
+    padding: 7px 20px;
+    color: var(--muted);
+    font-size: 13px;
+    transition: color .15s, background .15s;
+    border-radius: 0;
+  }
+
+  nav ul li a:hover { color: var(--text); background: var(--surface2); text-decoration: none; }
+
+  nav ul li.section-header {
+    padding: 16px 20px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--subtle);
+  }
+
+  main {
+    flex: 1;
+    max-width: 820px;
+    padding: 48px 40px 80px;
+  }
+
+  /* ── Typography ── */
+  h1 { font-size: 32px; font-weight: 800; margin-bottom: 12px; }
+  h2 { font-size: 22px; font-weight: 700; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 16px; font-weight: 600; margin: 28px 0 10px; color: var(--text); }
+  p { margin-bottom: 14px; color: var(--muted); }
+  p strong, li strong { color: var(--text); }
+
+  ul, ol { padding-left: 20px; margin-bottom: 14px; color: var(--muted); }
+  li { margin-bottom: 6px; }
+
+  code {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--brand);
+  }
+
+  pre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+  }
+
+  pre code {
+    background: none;
+    border: none;
+    padding: 0;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  /* ── Components ── */
+  .hero {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+
+  .hero-sub { font-size: 17px; color: var(--muted); margin-top: 8px; }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-amber { background: var(--amber-dim); color: var(--amber); }
+  .badge-brand { background: var(--brand-dim); color: var(--brand); }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--blue); }
+  .dot-amber { background: var(--amber); }
+
+  .callout {
+    border-left: 3px solid var(--brand);
+    background: var(--surface);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .callout.warn { border-color: var(--amber); }
+  .callout.tip { border-color: var(--green); }
+
+  .step-grid {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 8px 16px;
+    margin-bottom: 24px;
+  }
+
+  .step-num {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--brand-dim);
+    color: var(--brand);
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step-content { padding-bottom: 8px; }
+  .step-content p { margin: 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--surface2);
+    color: var(--muted);
+    vertical-align: top;
+  }
+
+  td:first-child { color: var(--text); font-family: var(--mono); font-size: 13px; }
+
+  tr:last-child td { border-bottom: none; }
+
+  .score-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+
+  .score-label { width: 80px; color: var(--muted); }
+  .score-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 3px; }
+  .score-num { width: 28px; text-align: right; font-weight: 600; }
+
+  section { margin-bottom: 0; }
+
+  .example-chat {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  .example-chat .from { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+  .example-chat.user .from { color: var(--brand); }
+  .example-chat.agent .from { color: var(--green); }
+  .example-chat.agent { background: #0c1a10; border-color: var(--green-dim); }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar nav ── -->
+<nav>
+  <div class="nav-logo">
+    <div class="nav-logo-dot"></div>
+    <span class="nav-logo-text">FindRE</span>
+  </div>
+  <ul>
+    <li class="section-header">Getting Started</li>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#install">Installation</a></li>
+    <li><a href="#first-search">Your First Search</a></li>
+
+    <li class="section-header">How It Works</li>
+    <li><a href="#conversation">Conversation Intake</a></li>
+    <li><a href="#scoring">The Scoring System</a></li>
+    <li><a href="#categories">Property Categories</a></li>
+    <li><a href="#filters">Hard Filters</a></li>
+    <li><a href="#explanations">AI Explanations</a></li>
+
+    <li class="section-header">Features</li>
+    <li><a href="#map">Map View</a></li>
+    <li><a href="#weights">Score Weights</a></li>
+    <li><a href="#session">Session Learning</a></li>
+    <li><a href="#demo">Demo Mode</a></li>
+
+    <li class="section-header">Configuration</li>
+    <li><a href="#zillow">Zillow API Key</a></li>
+    <li><a href="#ollama">Ollama Setup</a></li>
+    <li><a href="#env">Environment Variables</a></li>
+
+    <li class="section-header">Reference</li>
+    <li><a href="#api">REST API</a></li>
+    <li><a href="#faq">FAQ</a></li>
+  </ul>
+</nav>
+
+<!-- ── Main content ── -->
+<main>
+
+  <div class="hero">
+    <h1>FindRE User Guide</h1>
+    <p class="hero-sub">AI-powered real estate discovery. Describe your ideal home in plain English — FindRE does the rest.</p>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <span class="badge badge-brand">v1.0 · 2026-06-27</span>
+      <span class="badge badge-green">React 19 + FastAPI</span>
+      <span class="badge badge-blue">Ollama Local LLM</span>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <section id="overview">
+    <h2>Overview</h2>
+    <p>FindRE combines a conversational AI intake agent with live Zillow data and a local large language model to surface properties that a keyword search would miss. Instead of filtering by checkboxes, you describe your situation — the app extracts your criteria, searches Zillow in real time, scores every result on three axes, and writes a personalized explanation for each property.</p>
+    <p>Everything runs locally. The LLM (Ollama + qwen3.6:35b) never sends your data to a third-party AI service. The only external call is to the Zillow RapidAPI — and even that is optional; demo mode ships with seeded San Diego data.</p>
+    <p><strong>What FindRE is good at:</strong> finding properties that exactly or partially fit a nuanced set of criteria, identifying undervalued listings, and surfacing "hidden gems" — properties that have sat on the market long enough for sellers to be motivated.</p>
+    <p><strong>What it is not:</strong> a replacement for a real estate agent. Lot sizes, HOA rules, and disclosure items must be independently verified. Use the AI explanations as a starting point, not a substitute for due diligence.</p>
+  </section>
+
+  <!-- INSTALLATION -->
+  <section id="install">
+    <h2>Installation</h2>
+
+    <h3>Prerequisites</h3>
+    <ul>
+      <li>Python 3.11+ with <a href="https://github.com/astral-sh/uv" target="_blank">uv</a></li>
+      <li>Node.js 18+</li>
+      <li><a href="https://ollama.com" target="_blank">Ollama</a> running locally</li>
+      <li>RapidAPI key (optional — demo mode works without it)</li>
+    </ul>
+
+    <h3>Steps</h3>
+    <div class="step-grid">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <p><strong>Pull the LLM model</strong> — this is a one-time ~20 GB download. Start it now so it's ready by the time you finish setup.</p>
+        <pre><code>ollama pull qwen3.6:35b</code></pre>
+      </div>
+
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <p><strong>Install backend dependencies</strong></p>
+        <pre><code>cd backend
+uv sync</code></pre>
+      </div>
+
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <p><strong>Install frontend dependencies</strong></p>
+        <pre><code>cd frontend
+npm install</code></pre>
+      </div>
+
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <p><strong>Configure environment</strong> (optional — required only for live Zillow data)</p>
+        <pre><code>cp .env.example .env
+# set ZILLOW_API_KEY=your_key_here</code></pre>
+      </div>
+
+      <div class="step-num">5</div>
+      <div class="step-content">
+        <p><strong>Start both servers</strong></p>
+        <pre><code># Terminal 1
+cd backend && uv run python main.py
+
+# Terminal 2
+cd frontend && npm run dev</code></pre>
+        <p>Open <strong>http://localhost:5173</strong></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIRST SEARCH -->
+  <section id="first-search">
+    <h2>Your First Search</h2>
+    <p>The chat panel on the left is where you describe what you want. FindRE needs two things to start a search: a <strong>location</strong> (city, neighborhood, or zip code) and a <strong>budget</strong>. Everything else is optional.</p>
+
+    <div class="example-chat user">
+      <div class="from">You</div>
+      3 bed house in San Diego, budget under $800k, must have a garage
+    </div>
+    <div class="example-chat agent">
+      <div class="from">FindRE</div>
+      Got it — searching San Diego for 3+ bed single-family homes under $800k with a garage...
+    </div>
+
+    <p>That's it. FindRE confirms the capture and searches immediately — there's no "shall I proceed?" confirmation.</p>
+
+    <div class="callout tip">
+      <strong>Tip:</strong> You can give more information across multiple messages. Say the location first, then add budget, then mention must-haves. FindRE merges everything across the conversation.
+    </div>
+
+    <h3>More example queries</h3>
+    <div class="example-chat user">
+      <div class="from">You</div>
+      92120 zip, $600k–$900k budget, big backyard at least 6000 sqft, not a condo or apartment, no HOA if possible
+    </div>
+    <div class="example-chat user">
+      <div class="from">You</div>
+      Looking for a fixer-upper near Chula Vista. Single family only, private lot. Max $750k. I don't need lots of bedrooms — 2 is fine — but I want space to build an ADU.
+    </div>
+    <div class="example-chat user">
+      <div class="from">You</div>
+      La Mesa CA, 3-4 beds, $850k max, pool or big yard preferred, deal breaker is shared driveway
+    </div>
+  </section>
+
+  <!-- CONVERSATION INTAKE -->
+  <section id="conversation">
+    <h2>Conversation Intake</h2>
+    <p>The User Intent Agent (powered by Ollama) converts your free-text into a structured <code>UserPreferences</code> object. It extracts:</p>
+    <table>
+      <tr><th>Field</th><th>Description</th><th>Example trigger</th></tr>
+      <tr><td>budget_min / budget_max</td><td>Price range in dollars</td><td>"$600k–$900k", "under $800k"</td></tr>
+      <tr><td>location</td><td>City, zip, or neighborhood</td><td>"San Diego", "92120", "La Mesa"</td></tr>
+      <tr><td>radius_miles</td><td>Search radius (default 10 mi)</td><td>"within 20 miles"</td></tr>
+      <tr><td>bedrooms_min</td><td>Minimum bedroom count</td><td>"3 bed", "at least 4 bedrooms"</td></tr>
+      <tr><td>bathrooms_min</td><td>Minimum bathroom count</td><td>"2 baths"</td></tr>
+      <tr><td>sqft_min</td><td>Minimum interior sq ft</td><td>"1800 sqft minimum"</td></tr>
+      <tr><td>lot_size_min</td><td>Minimum lot size in sq ft</td><td>"6000 sqft lot", "big yard"</td></tr>
+      <tr><td>single_family_only</td><td>Exclude condos/multi-family</td><td>"no apartments", "private lot", "not shared"</td></tr>
+      <tr><td>must_haves</td><td>Required features</td><td>"garage", "pool", "ADU"</td></tr>
+      <tr><td>nice_to_haves</td><td>Preferred but not required</td><td>"fireplace", "updated kitchen"</td></tr>
+      <tr><td>deal_breakers</td><td>Automatic disqualifiers</td><td>"no HOA", "no shared driveway"</td></tr>
+      <tr><td>freeform_goal</td><td>Open-ended context</td><td>"I want space to build a workshop"</td></tr>
+    </table>
+
+    <div class="callout">
+      <strong>Note:</strong> If Ollama is offline or unreachable, FindRE falls back to a rule-based intake that asks for location and budget. The scoring and explanation pipeline continue to work without Ollama (rule-based fallback mode). The status bar shows <strong>AI Offline</strong> when Ollama isn't detected.
+    </div>
+  </section>
+
+  <!-- SCORING -->
+  <section id="scoring">
+    <h2>The Scoring System</h2>
+    <p>Every property receives three independent scores from 0–100, then a composite weighted average.</p>
+
+    <h3>Match score</h3>
+    <div class="score-bar-row">
+      <span class="score-label">Match</span>
+      <div class="score-track"><div class="score-fill" style="width:88%;background:#22c55e;"></div></div>
+      <span class="score-num" style="color:#22c55e;">88</span>
+    </div>
+    <p>How well the property satisfies your stated criteria. Deductions for: over budget (up to −60), missing bedrooms (−25 per bed), missing bathrooms (−15 per bath), under minimum sqft (up to −40), under minimum lot size (up to −40), missing must-haves (−15 each), deal-breaker present (−40 each). Bonus for being well under budget (+10 max).</p>
+
+    <h3>Value score</h3>
+    <div class="score-bar-row">
+      <span class="score-label">Value</span>
+      <div class="score-track"><div class="score-fill" style="width:72%;background:#3b82f6;"></div></div>
+      <span class="score-num" style="color:#3b82f6;">72</span>
+    </div>
+    <p>How the price-per-sqft compares to the neighborhood median within the result set. A property 30%+ below neighborhood average scores ~95; at the median it scores ~55; 30%+ above scores ~20.</p>
+
+    <h3>Opportunity score</h3>
+    <div class="score-bar-row">
+      <span class="score-label">Opp</span>
+      <div class="score-track"><div class="score-fill" style="width:55%;background:#f59e0b;"></div></div>
+      <span class="score-num" style="color:#f59e0b;">55</span>
+    </div>
+    <p>How motivated the seller appears. Points for: 30+ DOM (+10), 60+ DOM (+25), 90+ DOM (+35), 1 price reduction (+15), 2+ price reductions (+25), well under budget (+10), nice-to-haves present (+5 each).</p>
+
+    <h3>Composite score</h3>
+    <p>A weighted average: <code>composite = (match × w_match + value × w_value + opportunity × w_opp) / 100</code></p>
+    <p>Default weights are 40 / 35 / 25. Adjust them with the sliders in the bottom bar — results re-rank in real time.</p>
+  </section>
+
+  <!-- CATEGORIES -->
+  <section id="categories">
+    <h2>Property Categories</h2>
+    <p>After scoring, each property is assigned a category that drives the color of its map pin and card badge.</p>
+
+    <table>
+      <tr>
+        <th>Category</th>
+        <th>Color</th>
+        <th>Criteria</th>
+      </tr>
+      <tr>
+        <td>Exact</td>
+        <td><span class="badge badge-green"><span class="dot dot-green"></span>Green</span></td>
+        <td>Match ≥ 65 and composite ≥ 55. This property checks your core boxes.</td>
+      </tr>
+      <tr>
+        <td>Related</td>
+        <td><span class="badge badge-blue"><span class="dot dot-blue"></span>Blue</span></td>
+        <td>Match ≥ 40, or value ≥ 65 and composite ≥ 50. Worth considering — some criteria met.</td>
+      </tr>
+      <tr>
+        <td>Gem</td>
+        <td><span class="badge badge-amber"><span class="dot dot-amber"></span>Amber</span></td>
+        <td>Opportunity ≥ 65 with 60+ DOM, or 2+ price reductions with value ≥ 65. Low match but exceptional signal — seller motivated, possible deal.</td>
+      </tr>
+    </table>
+
+    <p>Use the <strong>category filter tabs</strong> at the top of the results list to show only one type. The count in each tab updates live. <em>Gems</em> in particular are worth reviewing even when they're outside your strict criteria — they often represent the best negotiating opportunities.</p>
+  </section>
+
+  <!-- HARD FILTERS -->
+  <section id="filters">
+    <h2>Hard Filters</h2>
+    <p>Before scoring, FindRE drops properties that <em>definitively</em> fail a hard requirement. Two hard filters are applied:</p>
+
+    <h3>Private lot / single-family filter</h3>
+    <p>Triggered when you say anything like <em>"not shared", "private lot", "no apartments", "single family only", "no tenants"</em>. When active, properties with type <code>multi_family</code> or <code>condo</code> are dropped before scoring.</p>
+    <p>This matters because Zillow reports the <em>parcel</em> lot size for condos and multi-family units. A 6-unit building on a 20,000 sqft parcel shows 20,000 sqft per unit — a misleading number if you want a private yard.</p>
+
+    <h3>Minimum lot size filter</h3>
+    <p>When you specify <code>lot_size_min</code> and Zillow has confirmed lot size data, properties with a known lot size below your minimum are dropped. Properties with <em>no listed lot size</em> are <strong>not</strong> dropped — they pass through but receive a scoring penalty and an explanation flag saying "lot size not listed — verify before scheduling a showing."</p>
+
+    <div class="callout warn">
+      <strong>Important:</strong> Lot sizes reported by Zillow are not always accurate or complete. The hard filter only excludes properties where the data is confirmed to be too small. Always verify lot size directly with the listing agent or county records before scheduling a showing.
+    </div>
+  </section>
+
+  <!-- EXPLANATIONS -->
+  <section id="explanations">
+    <h2>AI Explanations</h2>
+    <p>Every property card includes a three-part explanation:</p>
+    <ul>
+      <li><strong>Why it matches</strong> — how it satisfies your specific criteria</li>
+      <li><strong>Why it's interesting</strong> — value signals, days on market, price history</li>
+      <li><strong>Tradeoffs</strong> — what it doesn't meet, what to verify</li>
+    </ul>
+    <p>Plus three <strong>highlight bullets</strong> — short one-liners summarizing the most important points.</p>
+    <p>The #1 result (highest composite score) gets a full AI-written explanation from qwen3.6:35b. All other results use a fast rule-based explanation generator that produces consistent, accurate output without waiting for the LLM. This keeps total search time under ~35 seconds even with a large LLM.</p>
+    <p>If Ollama is offline, all results use rule-based explanations — you won't notice a UI difference.</p>
+  </section>
+
+  <!-- MAP -->
+  <section id="map">
+    <h2>Map View</h2>
+    <p>The right panel shows all results on a CartoDB Dark Matter base map. Pin colors match the category badges:</p>
+    <ul>
+      <li>Green pins — Exact matches</li>
+      <li>Blue pins — Related properties</li>
+      <li>Amber pins — Gems (opportunity plays)</li>
+    </ul>
+    <p>Click any pin to open a popup with address, price, and composite score. The popup has a <strong>Details</strong> button that scrolls the left panel to that property's card and expands the explanation.</p>
+    <p>A dashed circle on the map shows the search radius from the geocoded center point.</p>
+
+    <div class="callout">
+      <strong>Geocoding:</strong> US zip codes are always looked up as "<em>zip, USA</em>" first to avoid false matches with international postal codes that share the same digits.
+    </div>
+  </section>
+
+  <!-- WEIGHTS -->
+  <section id="weights">
+    <h2>Score Weights</h2>
+    <p>The bottom bar shows three sliders — Match, Value, Opportunity — that control how the composite score is calculated. They always sum to 100. Drag one slider and the others adjust automatically.</p>
+    <p>Use cases:</p>
+    <ul>
+      <li><strong>Investor / flip buyer:</strong> lower Match, raise Opportunity — surface properties with high seller motivation regardless of whether they perfectly fit your criteria.</li>
+      <li><strong>Value-focused buyer:</strong> raise Value — prioritize properties priced well below neighborhood average.</li>
+      <li><strong>Criteria-strict buyer:</strong> raise Match to 70+ — only see properties that actually check your boxes.</li>
+    </ul>
+    <p>Weight changes re-rank results in real time without triggering a new Zillow search.</p>
+  </section>
+
+  <!-- SESSION LEARNING -->
+  <section id="session">
+    <h2>Session Learning</h2>
+    <p>When you like or dislike properties during a session, FindRE tracks which score dimensions were high in properties you liked. After 3+ interactions, it subtly adjusts the effective weights to favor the profile of liked properties.</p>
+    <p>This is soft learning — adjustments are at most ±5 points per dimension, and they normalize to 100. The manual sliders override session learning. Session state is in-memory and does not persist between browser sessions.</p>
+  </section>
+
+  <!-- DEMO MODE -->
+  <section id="demo">
+    <h2>Demo Mode</h2>
+    <p>If no Zillow API key is configured, FindRE uses a built-in set of seeded San Diego-area listings. Demo mode is indicated in the status bar by <strong>Demo Data</strong> (instead of <strong>Zillow Live</strong>).</p>
+    <p>Everything works in demo mode: scoring, AI explanations, map, filters, session learning. It's useful for trying the UI before committing to a Zillow API key.</p>
+    <p>When the Zillow quota is exhausted mid-session, the app automatically falls back to demo data and shows <strong>Quota Exhausted (Demo)</strong> in the status bar.</p>
+  </section>
+
+  <!-- ZILLOW KEY -->
+  <section id="zillow">
+    <h2>Zillow API Key</h2>
+    <p>FindRE uses the <code>zillo-realtime-scraper</code> API on RapidAPI. The key is <strong>never hardcoded</strong> in source — it's passed via environment variable or a runtime POST endpoint.</p>
+
+    <h3>Option A: Environment variable</h3>
+    <pre><code># .env (at project root — never committed to git)
+ZILLOW_API_KEY=your_rapidapi_key_here</code></pre>
+
+    <h3>Option B: Runtime POST (no .env needed)</h3>
+    <pre><code>curl -X POST http://localhost:8000/api/config/zillow-key \
+  -H "Content-Type: application/json" \
+  -d '{"key": "your_rapidapi_key_here"}'</code></pre>
+    <p>The key is stored in memory only — it is not written to disk and does not survive a server restart.</p>
+
+    <h3>Quota</h3>
+    <p>Each FindRE search uses approximately 1 list call + up to 10 detail calls. Monitor your usage at <a href="https://rapidapi.com" target="_blank">rapidapi.com</a>. The free tier typically allows a few hundred calls per month — enough for regular personal use.</p>
+  </section>
+
+  <!-- OLLAMA -->
+  <section id="ollama">
+    <h2>Ollama Setup</h2>
+    <p>FindRE uses <a href="https://ollama.com" target="_blank">Ollama</a> to run a local LLM for intent extraction and property explanations. No data is sent to any cloud AI service.</p>
+
+    <pre><code># Install Ollama (macOS)
+brew install ollama
+
+# Or download from https://ollama.com
+
+# Start the server
+ollama serve
+
+# Pull the model (one-time, ~20 GB)
+ollama pull qwen3.6:35b</code></pre>
+
+    <p>FindRE detects Ollama automatically at startup. The status bar shows <strong>AI Ready</strong> + the model name when connected. If Ollama is not running, all features still work with rule-based fallbacks — the only difference is that intent extraction relies on simple heuristics and only the #1 result gets an AI explanation.</p>
+
+    <div class="callout">
+      <strong>Model requirement:</strong> All Ollama calls pass <code>"think": false</code> in the request. This is required for reasoning models like qwen3.6:35b — without it, the model returns an empty response. If you switch to a different model, verify it supports this parameter.
+    </div>
+  </section>
+
+  <!-- ENV VARS -->
+  <section id="env">
+    <h2>Environment Variables</h2>
+    <table>
+      <tr><th>Variable</th><th>Default</th><th>Description</th></tr>
+      <tr><td>ZILLOW_API_KEY</td><td>—</td><td>RapidAPI key for Zillow scraper. Optional — demo mode if absent.</td></tr>
+      <tr><td>OLLAMA_BASE_URL</td><td>http://localhost:11434</td><td>Ollama server endpoint</td></tr>
+      <tr><td>PORT</td><td>8000</td><td>Backend server port</td></tr>
+    </table>
+    <p>Place these in a <code>.env</code> file at the project root. The file is excluded from git via <code>.gitignore</code>.</p>
+  </section>
+
+  <!-- REST API -->
+  <section id="api">
+    <h2>REST API</h2>
+    <p>The backend exposes a JSON REST API at <code>http://localhost:8000/api</code>. All endpoints below accept and return <code>application/json</code>.</p>
+    <table>
+      <tr><th>Method + Path</th><th>Description</th></tr>
+      <tr><td>GET /api/status</td><td>Returns Ollama availability, Zillow configuration status, quota state</td></tr>
+      <tr><td>POST /api/chat</td><td>Send a chat message; returns response + partial preferences + whether search is triggered</td></tr>
+      <tr><td>POST /api/search</td><td>Run a search given fully-formed preferences + search area + weights</td></tr>
+      <tr><td>POST /api/interact</td><td>Record a like/dislike on a property for session learning</td></tr>
+      <tr><td>POST /api/config/zillow-key</td><td>Set the Zillow API key at runtime (in-memory, not persisted)</td></tr>
+      <tr><td>GET /docs</td><td>This user guide</td></tr>
+    </table>
+    <p>Auto-generated interactive API docs (Swagger) are available at <code>http://localhost:8000/api/docs</code> when the server is running — but that route is reserved by FastAPI's built-in docs. Use <code>http://localhost:8000/openapi.json</code> for the raw schema.</p>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq">
+    <h2>FAQ</h2>
+
+    <h3>Why is the search slow?</h3>
+    <p>Each search makes 1–10 calls to the Zillow API (network latency) and then runs the #1 result through qwen3.6:35b for an AI explanation (~25–35 seconds on a modern machine). The other ~20 results get rule-based explanations instantly. Total time is typically 30–45 seconds for a live search, 5–10 seconds in demo mode.</p>
+
+    <h3>Why did my zip code land in the wrong city?</h3>
+    <p>Nominatim (the geocoder) searches globally. Some US zip codes match postal districts in other countries. FindRE appends ", USA" to all five-digit zip queries to prevent this. If you get a wrong location, try using the city name instead of the zip.</p>
+
+    <h3>Why do some properties show "lot size unverified"?</h3>
+    <p>Zillow doesn't always include lot size in its API response. When lot size is absent, FindRE flags it in the explanation rather than assuming the property fails your lot requirement. Always verify lot size with the listing agent or county records.</p>
+
+    <h3>Can I search outside San Diego?</h3>
+    <p>Yes — the app works anywhere Zillow has data. Just provide any US city or zip code. The hardcoded fallback coordinates in the geocoder are San Diego-area specific, but if Nominatim can resolve your city (it usually can), the search works normally.</p>
+
+    <h3>Where is my data stored?</h3>
+    <p>Property search results are cached in a local SQLite database at <code>backend/data/findre.db</code> to avoid redundant Zillow API calls. This file is excluded from git. No data is sent anywhere except to the Zillow RapidAPI endpoint and (for AI features) to your local Ollama instance.</p>
+
+    <h3>Can I run this in production?</h3>
+    <p>FindRE is designed as a local personal tool. The FastAPI server has no authentication. Do not expose port 8000 to the internet without adding auth middleware.</p>
+  </section>
+
+  <div style="margin-top:64px;padding-top:24px;border-top:1px solid var(--border);color:var(--subtle);font-size:13px;">
+    FindRE v1.0 · Built 2026-06-27 · <a href="https://github.com/mrodgers/findre" target="_blank">github.com/mrodgers/findre</a>
+  </div>
+
+</main>
+</div>
+</body>
+</html>

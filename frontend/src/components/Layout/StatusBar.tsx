@@ -1,5 +1,5 @@
 import { useAppStore } from '../../store'
-import { Cpu, Database, MapPin, RotateCcw } from 'lucide-react'
+import { Cpu, Database, MapPin, RotateCcw, BookOpen } from 'lucide-react'
 
 export function StatusBar() {
   const apiStatus = useAppStore(s => s.apiStatus)
@@ -41,6 +41,16 @@ export function StatusBar() {
             {session.properties.length} found
           </span>
         )}
+        <a
+          href="http://localhost:8000/docs"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-white transition-colors"
+          title="User Guide"
+        >
+          <BookOpen className="w-3 h-3" />
+          Help
+        </a>
         {session.onboarding_complete && (
           <button
             onClick={resetSession}
