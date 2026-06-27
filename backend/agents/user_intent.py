@@ -128,15 +128,33 @@ Extract preferences and respond as described."""
 
 
 async def _geocode_location(location: str) -> Tuple[Optional[float], Optional[float]]:
-    """Geocode a location string to lat/lng."""
+    """Geocode a location string to lat/lng, constrained to the US."""
     try:
         import asyncio
+        import re
         loop = asyncio.get_event_loop()
-        # Try exact location first, then with ", USA" appended for bare cities/zips
-        for query in [location, f"{location}, USA"]:
+
+        is_zip = bool(re.match(r'^\d{5}$', location.strip()))
+
+        # For US zip codes always query with country constraint so Nominatim
+        # doesn't return identically-numbered foreign postal codes (e.g. 92120
+        # is also Raahe, Finland).  For city names try US-constrained first.
+        queries: list[tuple[str, dict]] = []
+        if is_zip:
+            queries = [
+                (f"{location}, USA", {"countrycodes": "us"}),
+                (f"{location}, USA", {}),
+            ]
+        else:
+            queries = [
+                (location, {"countrycodes": "us"}),
+                (f"{location}, USA", {}),
+            ]
+
+        for query, kwargs in queries:
             result = await loop.run_in_executor(
                 None,
-                lambda q=query: _geocoder.geocode(q, timeout=10)
+                lambda q=query, kw=kwargs: _geocoder.geocode(q, timeout=10, **kw)
             )
             if result:
                 return result.latitude, result.longitude
