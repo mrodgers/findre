@@ -95,6 +95,11 @@ def _apply_hard_filters(properties: List[Property], prefs: UserPreferences) -> L
         excluded_types = {"multi_family", "condo"}
 
     for prop in properties:
+        # Hard budget check — Zillow doesn't always honor price_max; allow 10% headroom
+        # for listings that may negotiate down, but drop obvious leaks (e.g. $2M on $1M budget)
+        if prefs.budget_max and prop.price > prefs.budget_max * 1.10:
+            continue
+
         # Hard lot size check — only drop if lot_sqft is known and too small
         if prefs.lot_size_min and prop.lot_sqft is not None:
             if prop.lot_sqft < prefs.lot_size_min:
@@ -109,7 +114,8 @@ def _apply_hard_filters(properties: List[Property], prefs: UserPreferences) -> L
     dropped = len(properties) - len(filtered)
     if dropped:
         print(f"[Filter] Hard filters removed {dropped}/{len(properties)} properties "
-              f"(lot_size_min={prefs.lot_size_min}, single_family_only={prefs.single_family_only})",
+              f"(budget_max={prefs.budget_max}, lot_size_min={prefs.lot_size_min}, "
+              f"single_family_only={prefs.single_family_only})",
               flush=True)
 
     return filtered

@@ -54,7 +54,9 @@ def _match_score(prop: Property, prefs: UserPreferences) -> int:
     # Budget
     if prefs.budget_max and prop.price > prefs.budget_max:
         over_pct = (prop.price - prefs.budget_max) / prefs.budget_max
-        deductions += min(60, int(over_pct * 200))
+        # Cap raised to 80: a property 5-10% over budget should score very low,
+        # not sneak through as a "Derivative" at match=40
+        deductions += min(80, int(over_pct * 400))
     elif prefs.budget_max and prop.price <= prefs.budget_max:
         # Reward being well under budget
         under_pct = (prefs.budget_max - prop.price) / prefs.budget_max
