@@ -41,6 +41,7 @@ export function PropertyMap() {
   const selectedProperty = useAppStore(s => s.selectedProperty)
   const selectProperty = useAppStore(s => s.selectProperty)
   const activeCategory = useAppStore(s => s.activeCategory)
+  const propertyTypeFilter = useAppStore(s => s.propertyTypeFilter)
 
   const searchArea = session.search_area
   const defaultCenter: [number, number] = [32.7157, -117.1611] // San Diego default
@@ -52,7 +53,8 @@ export function PropertyMap() {
   const radiusMeters = (searchArea?.radius_miles ?? 10) * 1609.34
 
   const visibleProperties = session.properties.filter(p =>
-    activeCategory === 'all' || p.category === activeCategory
+    (activeCategory === 'all' || p.category === activeCategory) &&
+    (propertyTypeFilter === 'all' || p.property_type === propertyTypeFilter)
   )
 
   return (

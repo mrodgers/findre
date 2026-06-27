@@ -6,6 +6,7 @@ interface AppState {
   apiStatus: ApiStatus | null
   selectedProperty: Property | null
   activeCategory: 'all' | 'exact' | 'derivative' | 'opportunity'
+  propertyTypeFilter: string
   sidebarView: 'chat' | 'results'
   favorites: Set<string>
 
@@ -19,6 +20,7 @@ interface AppState {
   setOnboardingComplete: (complete: boolean) => void
   selectProperty: (property: Property | null) => void
   setActiveCategory: (cat: AppState['activeCategory']) => void
+  setPropertyTypeFilter: (type: string) => void
   setSidebarView: (view: AppState['sidebarView']) => void
   toggleFavorite: (propertyId: string) => void
   updateSessionLearning: (propertyId: string, action: 'like' | 'dislike' | 'view') => void
@@ -59,6 +61,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   apiStatus: null,
   selectedProperty: null,
   activeCategory: 'all',
+  propertyTypeFilter: 'all',
   sidebarView: 'chat',
   favorites: loadFavorites(),
 
@@ -104,6 +107,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setActiveCategory: (activeCategory) => set({ activeCategory }),
 
+  setPropertyTypeFilter: (propertyTypeFilter) => set({ propertyTypeFilter }),
+
   setSidebarView: (sidebarView) => set({ sidebarView }),
 
   toggleFavorite: (propertyId) => set((state) => {
@@ -130,6 +135,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
     selectedProperty: null,
     activeCategory: 'all',
+    propertyTypeFilter: 'all',
     sidebarView: 'chat',
   }),
 

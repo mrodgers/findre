@@ -41,7 +41,12 @@ export function PropertyCard({ property: p, selected, onClick, onLike, onDislike
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
           <div className="font-medium text-sm text-white truncate">{p.address}</div>
-          <div className="text-xs text-gray-500">{p.city}, {p.state} {p.zip}</div>
+          <div className="text-xs text-gray-500">
+            {p.city}, {p.state} {p.zip}
+            {p.property_type && p.property_type !== 'single_family' && (
+              <span className="ml-1.5 text-gray-600">· {typeLabel(p.property_type)}</span>
+            )}
+          </div>
         </div>
         <span className={`text-xs px-1.5 py-0.5 rounded border flex-shrink-0 ${styles.badge}`}>
           {categoryLabels[p.category]}
@@ -159,4 +164,14 @@ function CompositeRing({ score }: { score: number }) {
       </span>
     </div>
   )
+}
+
+function typeLabel(type: string): string {
+  const labels: Record<string, string> = {
+    condo: 'Condo',
+    townhouse: 'Townhome',
+    multi_family: 'Multi-family',
+    land: 'Land',
+  }
+  return labels[type] ?? type
 }

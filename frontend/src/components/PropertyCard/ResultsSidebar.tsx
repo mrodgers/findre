@@ -11,31 +11,52 @@ const categories = [
   { key: 'opportunity' as const, label: 'Gems', icon: <Lightbulb className="w-3.5 h-3.5" /> },
 ]
 
+const propertyTypes = [
+  { key: 'all',           label: 'All types' },
+  { key: 'single_family', label: 'House' },
+  { key: 'condo',         label: 'Condo' },
+  { key: 'townhouse',     label: 'Townhome' },
+  { key: 'multi_family',  label: 'Multi' },
+  { key: 'land',          label: 'Land' },
+]
+
 export function ResultsSidebar() {
   const session = useAppStore(s => s.session)
   const selectedProperty = useAppStore(s => s.selectedProperty)
   const activeCategory = useAppStore(s => s.activeCategory)
   const setActiveCategory = useAppStore(s => s.setActiveCategory)
+  const propertyTypeFilter = useAppStore(s => s.propertyTypeFilter)
+  const setPropertyTypeFilter = useAppStore(s => s.setPropertyTypeFilter)
   const selectProperty = useAppStore(s => s.selectProperty)
   const updateSessionLearning = useAppStore(s => s.updateSessionLearning)
   const [stretchExpanded, setStretchExpanded] = useState(false)
   const [savedExpanded, setSavedExpanded] = useState(true)
   const favorites = useAppStore(s => s.favorites)
 
-  // Separate stretch from main results
+  // Separate stretch from main results, then apply property type filter
   const inBudget = session.properties.filter(p => p.category !== 'stretch')
   const stretchProperties = session.properties.filter(p => p.category === 'stretch')
   const savedProperties = session.properties.filter(p => favorites.has(p.id))
 
+  const matchesTypeFilter = (p: Property) =>
+    propertyTypeFilter === 'all' || p.property_type === propertyTypeFilter
+
+  // Which types actually appear in results (to show only relevant chips)
+  const presentTypes = new Set(session.properties.map(p => p.property_type))
+  const visibleTypeFilters = propertyTypes.filter(
+    t => t.key === 'all' || presentTypes.has(t.key)
+  )
+
   const counts = {
-    all: inBudget.length,
-    exact: inBudget.filter(p => p.category === 'exact').length,
-    derivative: inBudget.filter(p => p.category === 'derivative').length,
-    opportunity: inBudget.filter(p => p.category === 'opportunity').length,
+    all: inBudget.filter(matchesTypeFilter).length,
+    exact: inBudget.filter(p => p.category === 'exact' && matchesTypeFilter(p)).length,
+    derivative: inBudget.filter(p => p.category === 'derivative' && matchesTypeFilter(p)).length,
+    opportunity: inBudget.filter(p => p.category === 'opportunity' && matchesTypeFilter(p)).length,
   }
 
-  const visible = inBudget
-    .filter(p => activeCategory === 'all' || p.category === activeCategory)
+  const visible = inBudget.filter(
+    p => (activeCategory === 'all' || p.category === activeCategory) && matchesTypeFilter(p)
+  )
 
   if (session.properties.length === 0) {
     return (
@@ -51,7 +72,7 @@ export function ResultsSidebar() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header row: filter tabs + export */}
+      {/* Category tabs + export */}
       <div className="flex items-center justify-between pr-2 border-b border-gray-800">
         <div className="flex gap-1 p-2 flex-1">
           {categories.map(cat => (
@@ -79,9 +100,28 @@ export function ResultsSidebar() {
         </button>
       </div>
 
+      {/* Property type filter chips */}
+      {visibleTypeFilters.length > 2 && (
+        <div className="flex gap-1 px-2 py-1.5 border-b border-gray-800 overflow-x-auto scrollbar-none">
+          {visibleTypeFilters.map(t => (
+            <button
+              key={t.key}
+              onClick={() => setPropertyTypeFilter(t.key)}
+              className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                propertyTypeFilter === t.key
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Results list */}
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
-        {/* Saved properties section — shown on all tab when any are saved */}
+        {/* Saved properties section */}
         {activeCategory === 'all' && savedProperties.length > 0 && (
           <div>
             <button
@@ -122,26 +162,25 @@ export function ResultsSidebar() {
 
         {visible.length === 0 && (
           <div className="text-center text-gray-500 text-sm py-8">
-            No {activeCategory} matches found
+            No {propertyTypeFilter !== 'all'
+              ? propertyTypes.find(t => t.key === propertyTypeFilter)?.label
+              : activeCategory} matches found
           </div>
         )}
 
-        {/* Over Budget section — only shown on "all" tab */}
-        {activeCategory === 'all' && stretchProperties.length > 0 && (
+        {/* Over Budget section */}
+        {activeCategory === 'all' && stretchProperties.filter(matchesTypeFilter).length > 0 && (
           <div className="mt-2">
             <button
               onClick={() => setStretchExpanded(s => !s)}
               className="w-full flex items-center gap-2 px-2 py-2 rounded-lg border border-red-900/40 bg-red-950/20 text-red-400 text-xs font-medium hover:bg-red-950/40 transition-colors"
             >
-              {stretchExpanded
-                ? <ChevronDown className="w-3.5 h-3.5" />
-                : <ChevronRight className="w-3.5 h-3.5" />}
-              Over Budget — {stretchProperties.length} {stretchProperties.length === 1 ? 'property' : 'properties'} (up to 25% over)
+              {stretchExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              Over Budget — {stretchProperties.filter(matchesTypeFilter).length} {stretchProperties.filter(matchesTypeFilter).length === 1 ? 'property' : 'properties'} (up to 25% over)
             </button>
-
             {stretchExpanded && (
               <div className="mt-2 space-y-2">
-                {stretchProperties.map((prop: Property) => (
+                {stretchProperties.filter(matchesTypeFilter).map((prop: Property) => (
                   <PropertyCard
                     key={prop.id}
                     property={prop}
@@ -161,11 +200,12 @@ export function ResultsSidebar() {
 }
 
 function exportCSV(properties: Property[]) {
-  const headers = ['Address', 'City', 'State', 'Zip', 'Price', 'Beds', 'Baths', 'Sqft', '$/sqft', 'Days on Market', 'Category', 'Match', 'Value', 'Opportunity', 'Composite', 'Zillow URL']
+  const headers = ['Address', 'City', 'State', 'Zip', 'Price', 'Beds', 'Baths', 'Sqft', '$/sqft', 'Days on Market', 'Type', 'Category', 'Match', 'Value', 'Opportunity', 'Composite', 'Zillow URL']
   const rows = properties.map(p => [
     p.address, p.city, p.state, p.zip,
     p.price, p.beds, p.baths, p.sqft, p.price_per_sqft,
     p.days_on_market ?? '',
+    p.property_type,
     p.category,
     p.scores.match, p.scores.value, p.scores.opportunity, p.scores.composite,
     p.listing_url ?? '',
