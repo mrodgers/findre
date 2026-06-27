@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react'
-import { X, ExternalLink, MapPin, Bed, Bath, Maximize, Calendar, TrendingDown, Clock, Star, Eye, Heart, Home, Thermometer, Video, LayoutPanelLeft } from 'lucide-react'
+import { X, ExternalLink, MapPin, Bed, Bath, Maximize, Calendar, TrendingDown, Clock, Star, Eye, Heart, Home, Thermometer, Video, LayoutPanelLeft, LandPlot } from 'lucide-react'
 import { useAppStore } from '../../store'
 import { apiService } from '../../services/api'
 import type { PropertyDetails } from '../../types'
+import { MortgageCalc } from './MortgageCalc'
 
 export function PropertyDetail() {
   const property = useAppStore(s => s.selectedProperty)
   const apiStatus = useAppStore(s => s.apiStatus)
   const selectProperty = useAppStore(s => s.selectProperty)
   const updateSessionLearning = useAppStore(s => s.updateSessionLearning)
+  const favorites = useAppStore(s => s.favorites)
+  const toggleFavorite = useAppStore(s => s.toggleFavorite)
 
   const [details, setDetails] = useState<PropertyDetails | null>(null)
   const [detailsLoading, setDetailsLoading] = useState(false)
@@ -28,6 +31,7 @@ export function PropertyDetail() {
   if (!property) return null
 
   const p = property
+  const isFav = favorites.has(p.id)
   const confidenceLabel = p.explanation.confidence >= 0.8 ? 'High' : p.explanation.confidence >= 0.6 ? 'Medium' : 'Low'
   const confidenceColor = p.explanation.confidence >= 0.8 ? 'text-green-400' : p.explanation.confidence >= 0.6 ? 'text-amber-400' : 'text-gray-500'
 
@@ -46,9 +50,18 @@ export function PropertyDetail() {
           <h2 className="font-semibold text-white">{p.address}</h2>
           <p className="text-xs text-gray-500">{p.city}, {p.state} {p.zip}</p>
         </div>
-        <button onClick={() => selectProperty(null)} className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400">
-          <X className="w-4 h-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            onClick={() => toggleFavorite(p.id)}
+            className={`p-1.5 rounded-lg transition-colors ${isFav ? 'text-red-400 bg-red-900/30' : 'text-gray-400 hover:text-red-400 hover:bg-gray-800'}`}
+            title={isFav ? 'Remove from saved' : 'Save property'}
+          >
+            <Heart className={`w-4 h-4 ${isFav ? 'fill-current' : ''}`} />
+          </button>
+          <button onClick={() => selectProperty(null)} className="p-1.5 hover:bg-gray-800 rounded-lg text-gray-400">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-4">
@@ -158,8 +171,19 @@ export function PropertyDetail() {
           <StatBox icon={<Bed className="w-4 h-4" />} label="Beds" value={p.beds} />
           <StatBox icon={<Bath className="w-4 h-4" />} label="Baths" value={p.baths} />
           <StatBox icon={<Maximize className="w-4 h-4" />} label="Sqft" value={p.sqft.toLocaleString()} />
-          {p.year_built && <StatBox icon={<Calendar className="w-4 h-4" />} label="Built" value={p.year_built} />}
+          {p.lot_sqft
+            ? <StatBox icon={<LandPlot className="w-4 h-4" />} label="Lot sqft" value={p.lot_sqft.toLocaleString()} />
+            : p.year_built
+              ? <StatBox icon={<Calendar className="w-4 h-4" />} label="Built" value={p.year_built} />
+              : null
+          }
         </div>
+        {/* Show both lot + year if we have both */}
+        {p.lot_sqft && p.year_built && (
+          <div className="grid grid-cols-4 gap-2">
+            <StatBox icon={<Calendar className="w-4 h-4" />} label="Built" value={p.year_built} />
+          </div>
+        )}
 
         {/* Market time + price reductions */}
         {(p.days_on_market !== undefined || (p.price_reductions && p.price_reductions > 0)) && (
@@ -207,10 +231,12 @@ export function PropertyDetail() {
         )}
 
         {/* Description */}
-        {details?.description && (
+        {(details?.description || p.description) && (
           <div className="card p-4">
             <h3 className="text-sm font-semibold text-gray-300 mb-2">Description</h3>
-            <p className="text-xs text-gray-400 leading-relaxed line-clamp-6">{details.description}</p>
+            <p className="text-xs text-gray-400 leading-relaxed line-clamp-6">
+              {details?.description || p.description}
+            </p>
           </div>
         )}
 
@@ -227,6 +253,9 @@ export function PropertyDetail() {
             <span className="text-xl font-bold text-white">{p.scores.composite}</span>
           </div>
         </div>
+
+        {/* Mortgage Calculator */}
+        <MortgageCalc price={p.price} />
 
         {/* AI Explanation */}
         <div className="card p-4 space-y-3">

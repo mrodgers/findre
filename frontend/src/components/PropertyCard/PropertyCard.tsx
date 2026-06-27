@@ -1,5 +1,6 @@
-import { ThumbsUp, ThumbsDown, Bed, Bath, Maximize, TrendingDown, Clock } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Bed, Bath, Maximize, TrendingDown, Clock, Heart } from 'lucide-react'
 import type { Property } from '../../types'
+import { useAppStore } from '../../store'
 
 interface PropertyCardProps {
   property: Property
@@ -25,6 +26,9 @@ const categoryLabels = {
 
 export function PropertyCard({ property: p, selected, onClick, onLike, onDislike }: PropertyCardProps) {
   const styles = categoryStyles[p.category]
+  const favorites = useAppStore(s => s.favorites)
+  const toggleFavorite = useAppStore(s => s.toggleFavorite)
+  const isFav = favorites.has(p.id)
 
   return (
     <div
@@ -85,6 +89,13 @@ export function PropertyCard({ property: p, selected, onClick, onLike, onDislike
           <span className="text-xs text-gray-500">composite</span>
         </div>
         <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+          <button
+            onClick={() => toggleFavorite(p.id)}
+            className={`p-1.5 rounded transition-colors ${isFav ? 'text-red-400' : 'text-gray-600 hover:text-red-400'}`}
+            title={isFav ? 'Remove from saved' : 'Save property'}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-current' : ''}`} />
+          </button>
           <button
             onClick={onLike}
             className="p-1.5 hover:bg-green-900/40 hover:text-green-400 text-gray-600 rounded transition-colors"

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAppStore } from '../../store'
 import { PropertyCard } from './PropertyCard'
 import type { Property } from '../../types'
-import { Target, TrendingUp, Lightbulb, LayoutGrid, Download, ChevronDown, ChevronRight } from 'lucide-react'
+import { Target, TrendingUp, Lightbulb, LayoutGrid, Download, ChevronDown, ChevronRight, Heart } from 'lucide-react'
 
 const categories = [
   { key: 'all' as const, label: 'All', icon: <LayoutGrid className="w-3.5 h-3.5" /> },
@@ -19,10 +19,13 @@ export function ResultsSidebar() {
   const selectProperty = useAppStore(s => s.selectProperty)
   const updateSessionLearning = useAppStore(s => s.updateSessionLearning)
   const [stretchExpanded, setStretchExpanded] = useState(false)
+  const [savedExpanded, setSavedExpanded] = useState(true)
+  const favorites = useAppStore(s => s.favorites)
 
   // Separate stretch from main results
   const inBudget = session.properties.filter(p => p.category !== 'stretch')
   const stretchProperties = session.properties.filter(p => p.category === 'stretch')
+  const savedProperties = session.properties.filter(p => favorites.has(p.id))
 
   const counts = {
     all: inBudget.length,
@@ -78,6 +81,34 @@ export function ResultsSidebar() {
 
       {/* Results list */}
       <div className="flex-1 overflow-y-auto p-2 space-y-2">
+        {/* Saved properties section — shown on all tab when any are saved */}
+        {activeCategory === 'all' && savedProperties.length > 0 && (
+          <div>
+            <button
+              onClick={() => setSavedExpanded(s => !s)}
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg border border-red-900/40 bg-red-950/20 text-red-400 text-xs font-medium hover:bg-red-950/40 transition-colors"
+            >
+              {savedExpanded ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+              <Heart className="w-3 h-3 fill-current" />
+              Saved — {savedProperties.length} {savedProperties.length === 1 ? 'property' : 'properties'}
+            </button>
+            {savedExpanded && (
+              <div className="mt-2 space-y-2">
+                {savedProperties.map((prop: Property) => (
+                  <PropertyCard
+                    key={prop.id}
+                    property={prop}
+                    selected={selectedProperty?.id === prop.id}
+                    onClick={() => selectProperty(prop)}
+                    onLike={() => updateSessionLearning(prop.id, 'like')}
+                    onDislike={() => updateSessionLearning(prop.id, 'dislike')}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         {visible.map((prop: Property) => (
           <PropertyCard
             key={prop.id}

@@ -7,6 +7,7 @@ interface AppState {
   selectedProperty: Property | null
   activeCategory: 'all' | 'exact' | 'derivative' | 'opportunity'
   sidebarView: 'chat' | 'results'
+  favorites: Set<string>
 
   setApiStatus: (status: ApiStatus) => void
   addChatMessage: (msg: Omit<ChatMessage, 'id' | 'timestamp'>) => void
@@ -19,11 +20,27 @@ interface AppState {
   selectProperty: (property: Property | null) => void
   setActiveCategory: (cat: AppState['activeCategory']) => void
   setSidebarView: (view: AppState['sidebarView']) => void
+  toggleFavorite: (propertyId: string) => void
   updateSessionLearning: (propertyId: string, action: 'like' | 'dislike' | 'view') => void
   resetSession: () => void
 }
 
 const defaultWeights: ScoreWeights = { match: 40, value: 35, opportunity: 25 }
+
+function loadFavorites(): Set<string> {
+  try {
+    const raw = localStorage.getItem('findre_favorites')
+    return raw ? new Set(JSON.parse(raw)) : new Set()
+  } catch {
+    return new Set()
+  }
+}
+
+function saveFavorites(ids: Set<string>) {
+  try {
+    localStorage.setItem('findre_favorites', JSON.stringify([...ids]))
+  } catch {}
+}
 
 export const useAppStore = create<AppState>((set, get) => ({
   session: {
@@ -43,6 +60,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectedProperty: null,
   activeCategory: 'all',
   sidebarView: 'chat',
+  favorites: loadFavorites(),
 
   setApiStatus: (status) => set({ apiStatus: status }),
 
@@ -87,6 +105,14 @@ export const useAppStore = create<AppState>((set, get) => ({
   setActiveCategory: (activeCategory) => set({ activeCategory }),
 
   setSidebarView: (sidebarView) => set({ sidebarView }),
+
+  toggleFavorite: (propertyId) => set((state) => {
+    const next = new Set(state.favorites)
+    if (next.has(propertyId)) next.delete(propertyId)
+    else next.add(propertyId)
+    saveFavorites(next)
+    return { favorites: next }
+  }),
 
   resetSession: () => set({
     session: {
