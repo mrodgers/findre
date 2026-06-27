@@ -1,6 +1,9 @@
 import { useAppStore } from '../../store'
 import { Cpu, Database, MapPin, RotateCcw, BookOpen } from 'lucide-react'
 
+const buildDate = new Date(__BUILD_TIME__)
+const buildLabel = `v${__APP_VERSION__} · ${buildDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} · ${__GIT_HASH__}`
+
 export function StatusBar() {
   const apiStatus = useAppStore(s => s.apiStatus)
   const session = useAppStore(s => s.session)
@@ -41,6 +44,12 @@ export function StatusBar() {
             {session.properties.length} found
           </span>
         )}
+        <span
+          className="text-gray-600 text-xs font-mono hidden sm:block select-none"
+          title={`Built ${buildDate.toISOString()}`}
+        >
+          {buildLabel}
+        </span>
         <a
           href="http://localhost:8000/docs"
           target="_blank"
