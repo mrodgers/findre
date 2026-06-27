@@ -16,6 +16,7 @@ class PropertyCategory(str, Enum):
     EXACT = "exact"
     DERIVATIVE = "derivative"
     OPPORTUNITY = "opportunity"
+    STRETCH = "stretch"  # over budget_max but within 25% — shown separately
 
 
 class UserPreferences(BaseModel):

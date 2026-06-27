@@ -22,7 +22,7 @@ export interface ScoreWeights {
   opportunity: number
 }
 
-export type PropertyCategory = 'exact' | 'derivative' | 'opportunity'
+export type PropertyCategory = 'exact' | 'derivative' | 'opportunity' | 'stretch'
 
 export interface PropertyScore {
   match: number

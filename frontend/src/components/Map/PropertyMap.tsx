@@ -8,6 +8,7 @@ const categoryColors = {
   exact: '#22c55e',
   derivative: '#3b82f6',
   opportunity: '#f59e0b',
+  stretch: '#ef4444',
 }
 
 function createMarkerIcon(category: Property['category'], selected: boolean) {
@@ -115,10 +116,15 @@ export function PropertyMap() {
 
       {/* Map legend */}
       <div className="absolute bottom-4 right-4 bg-gray-900/90 backdrop-blur border border-gray-700 rounded-lg p-3 text-xs space-y-1.5">
-        {(['exact', 'derivative', 'opportunity'] as const).map(cat => (
+        {([
+          ['exact', 'Exact Match'],
+          ['derivative', 'Related Find'],
+          ['opportunity', 'Hidden Gem'],
+          ['stretch', 'Over Budget'],
+        ] as const).map(([cat, label]) => (
           <div key={cat} className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: categoryColors[cat] }} />
-            <span className="text-gray-400 capitalize">{cat}</span>
+            <span className="text-gray-400">{label}</span>
           </div>
         ))}
       </div>
@@ -153,6 +159,13 @@ function CategoryBadge({ category }: { category: Property['category'] }) {
     exact: 'bg-green-100 text-green-800',
     derivative: 'bg-blue-100 text-blue-800',
     opportunity: 'bg-amber-100 text-amber-800',
+    stretch: 'bg-red-100 text-red-800',
   }
-  return <span className={`px-1.5 py-0.5 rounded text-xs capitalize ${styles[category]}`}>{category}</span>
+  const labels = {
+    exact: 'Exact Match',
+    derivative: 'Related',
+    opportunity: 'Hidden Gem',
+    stretch: 'Over Budget',
+  }
+  return <span className={`px-1.5 py-0.5 rounded text-xs ${styles[category]}`}>{labels[category]}</span>
 }

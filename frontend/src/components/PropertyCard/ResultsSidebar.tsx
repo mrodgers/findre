@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { useAppStore } from '../../store'
 import { PropertyCard } from './PropertyCard'
 import type { Property } from '../../types'
-import { Target, TrendingUp, Lightbulb, LayoutGrid, Download } from 'lucide-react'
+import { Target, TrendingUp, Lightbulb, LayoutGrid, Download, ChevronDown, ChevronRight } from 'lucide-react'
 
 const categories = [
   { key: 'all' as const, label: 'All', icon: <LayoutGrid className="w-3.5 h-3.5" /> },
@@ -17,17 +18,21 @@ export function ResultsSidebar() {
   const setActiveCategory = useAppStore(s => s.setActiveCategory)
   const selectProperty = useAppStore(s => s.selectProperty)
   const updateSessionLearning = useAppStore(s => s.updateSessionLearning)
+  const [stretchExpanded, setStretchExpanded] = useState(false)
+
+  // Separate stretch from main results
+  const inBudget = session.properties.filter(p => p.category !== 'stretch')
+  const stretchProperties = session.properties.filter(p => p.category === 'stretch')
 
   const counts = {
-    all: session.properties.length,
-    exact: session.properties.filter(p => p.category === 'exact').length,
-    derivative: session.properties.filter(p => p.category === 'derivative').length,
-    opportunity: session.properties.filter(p => p.category === 'opportunity').length,
+    all: inBudget.length,
+    exact: inBudget.filter(p => p.category === 'exact').length,
+    derivative: inBudget.filter(p => p.category === 'derivative').length,
+    opportunity: inBudget.filter(p => p.category === 'opportunity').length,
   }
 
-  const visible = session.properties
+  const visible = inBudget
     .filter(p => activeCategory === 'all' || p.category === activeCategory)
-    .sort((a, b) => b.scores.composite - a.scores.composite)
 
   if (session.properties.length === 0) {
     return (
@@ -72,25 +77,51 @@ export function ResultsSidebar() {
       </div>
 
       {/* Results list */}
-      <div className="flex-1 overflow-y-auto space-y-2 p-2">
+      <div className="flex-1 overflow-y-auto p-2 space-y-2">
         {visible.map((prop: Property) => (
           <PropertyCard
             key={prop.id}
             property={prop}
             selected={selectedProperty?.id === prop.id}
             onClick={() => selectProperty(prop)}
-            onLike={() => {
-              updateSessionLearning(prop.id, 'like')
-            }}
-            onDislike={() => {
-              updateSessionLearning(prop.id, 'dislike')
-            }}
+            onLike={() => updateSessionLearning(prop.id, 'like')}
+            onDislike={() => updateSessionLearning(prop.id, 'dislike')}
           />
         ))}
 
         {visible.length === 0 && (
           <div className="text-center text-gray-500 text-sm py-8">
             No {activeCategory} matches found
+          </div>
+        )}
+
+        {/* Over Budget section — only shown on "all" tab */}
+        {activeCategory === 'all' && stretchProperties.length > 0 && (
+          <div className="mt-2">
+            <button
+              onClick={() => setStretchExpanded(s => !s)}
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg border border-red-900/40 bg-red-950/20 text-red-400 text-xs font-medium hover:bg-red-950/40 transition-colors"
+            >
+              {stretchExpanded
+                ? <ChevronDown className="w-3.5 h-3.5" />
+                : <ChevronRight className="w-3.5 h-3.5" />}
+              Over Budget — {stretchProperties.length} {stretchProperties.length === 1 ? 'property' : 'properties'} (up to 25% over)
+            </button>
+
+            {stretchExpanded && (
+              <div className="mt-2 space-y-2">
+                {stretchProperties.map((prop: Property) => (
+                  <PropertyCard
+                    key={prop.id}
+                    property={prop}
+                    selected={selectedProperty?.id === prop.id}
+                    onClick={() => selectProperty(prop)}
+                    onLike={() => updateSessionLearning(prop.id, 'like')}
+                    onDislike={() => updateSessionLearning(prop.id, 'dislike')}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>

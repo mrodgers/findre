@@ -13,12 +13,14 @@ const categoryStyles = {
   exact: { badge: 'bg-green-900/60 text-green-400 border-green-800', border: 'border-green-800/30' },
   derivative: { badge: 'bg-blue-900/60 text-blue-400 border-blue-800', border: 'border-blue-800/30' },
   opportunity: { badge: 'bg-amber-900/60 text-amber-400 border-amber-800', border: 'border-amber-800/30' },
+  stretch: { badge: 'bg-red-900/60 text-red-400 border-red-800', border: 'border-red-800/40' },
 }
 
 const categoryLabels = {
   exact: 'Exact Match',
   derivative: 'Related Find',
   opportunity: 'Hidden Gem',
+  stretch: 'Over Budget',
 }
 
 export function PropertyCard({ property: p, selected, onClick, onLike, onDislike }: PropertyCardProps) {
@@ -44,7 +46,9 @@ export function PropertyCard({ property: p, selected, onClick, onLike, onDislike
 
       {/* Price */}
       <div className="flex items-baseline gap-2 mb-2">
-        <span className="text-lg font-bold text-white">${(p.price / 1000).toFixed(0)}k</span>
+        <span className={`text-lg font-bold ${p.category === 'stretch' ? 'text-red-400' : 'text-white'}`}>
+          ${(p.price / 1000).toFixed(0)}k
+        </span>
         <span className="text-xs text-gray-500">${p.price_per_sqft}/sqft</span>
         {p.price_reductions && p.price_reductions > 0 && (
           <span className="flex items-center gap-0.5 text-xs text-green-400 ml-auto">

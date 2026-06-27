@@ -2,7 +2,7 @@
 Orchestrator — coordinates all agents to produce final recommendations.
 """
 from typing import List, Optional, Dict
-from models.schemas import Property, UserPreferences, SearchArea, ScoreWeights
+from models.schemas import Property, UserPreferences, SearchArea, ScoreWeights, PropertyCategory
 from providers.base import BasePropertyProvider
 from agents import scoring, discovery, explanation
 
@@ -72,8 +72,18 @@ async def run_search(
     # Step 5: Post-process opportunities
     properties = discovery.identify_opportunities(properties, preferences)
 
-    # Re-sort after opportunity identification
-    properties.sort(key=lambda p: p.scores.composite, reverse=True)
+    # Mark over-budget properties as STRETCH — overrides any category assigned by scoring/discovery
+    if preferences.budget_max:
+        for prop in properties:
+            if prop.price > preferences.budget_max:
+                prop.category = PropertyCategory.STRETCH
+
+    # Sort: in-budget by composite desc, stretch at the end by composite desc
+    in_budget = [p for p in properties if p.category != PropertyCategory.STRETCH]
+    stretch = [p for p in properties if p.category == PropertyCategory.STRETCH]
+    in_budget.sort(key=lambda p: p.scores.composite, reverse=True)
+    stretch.sort(key=lambda p: p.scores.composite, reverse=True)
+    properties = in_budget + stretch
 
     # Step 6: Generate explanations (AI for top, rule-based for rest)
     properties = await explanation.generate_ai_explanations(properties, preferences, neighborhood_psf_map)
@@ -95,9 +105,9 @@ def _apply_hard_filters(properties: List[Property], prefs: UserPreferences) -> L
         excluded_types = {"multi_family", "condo"}
 
     for prop in properties:
-        # Hard budget check — Zillow doesn't always honor price_max; allow 10% headroom
-        # for listings that may negotiate down, but drop obvious leaks (e.g. $2M on $1M budget)
-        if prefs.budget_max and prop.price > prefs.budget_max * 1.10:
+        # Hard budget check — Zillow doesn't always honor price_max; allow 25% headroom
+        # for the stretch section, but drop truly egregious leaks (e.g. $2M on $1M budget)
+        if prefs.budget_max and prop.price > prefs.budget_max * 1.25:
             continue
 
         # Hard lot size check — only drop if lot_sqft is known and too small
