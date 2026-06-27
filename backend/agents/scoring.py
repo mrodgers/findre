@@ -76,6 +76,14 @@ def _match_score(prop: Property, prefs: UserPreferences) -> int:
         under_pct = (prefs.sqft_min - prop.sqft) / prefs.sqft_min
         deductions += int(under_pct * 40)
 
+    # Lot size
+    if prefs.lot_size_min:
+        if prop.lot_sqft is not None and prop.lot_sqft < prefs.lot_size_min:
+            under_pct = (prefs.lot_size_min - prop.lot_sqft) / prefs.lot_size_min
+            deductions += int(under_pct * 40)
+        elif prop.lot_sqft is None:
+            deductions += 10  # mild penalty — lot size unverified
+
     # Must-haves
     for feature in prefs.must_haves:
         feature_lower = feature.lower()

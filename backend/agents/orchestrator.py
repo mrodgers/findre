@@ -43,6 +43,12 @@ async def run_search(
     if not properties:
         return []
 
+    # Step 1b: Hard filters — drop properties that can never satisfy hard requirements
+    properties = _apply_hard_filters(properties, preferences)
+
+    if not properties:
+        return []
+
     # Step 2: Expand if sparse
     properties = await discovery.expand_search(properties, preferences, search_area, provider)
 
@@ -73,6 +79,40 @@ async def run_search(
     properties = await explanation.generate_ai_explanations(properties, preferences, neighborhood_psf_map)
 
     return properties
+
+
+def _apply_hard_filters(properties: List[Property], prefs: UserPreferences) -> List[Property]:
+    """
+    Drop properties that definitively fail a hard requirement.
+    Only exclude when we have confirmed data — never exclude on missing data.
+    """
+    filtered = []
+    excluded_types = set()
+
+    # Build excluded property types
+    if prefs.single_family_only or prefs.lot_size_min:
+        # Multi-family and condos don't have private lots
+        excluded_types = {"multi_family", "condo"}
+
+    for prop in properties:
+        # Hard lot size check — only drop if lot_sqft is known and too small
+        if prefs.lot_size_min and prop.lot_sqft is not None:
+            if prop.lot_sqft < prefs.lot_size_min:
+                continue
+
+        # Property type exclusion when a private lot is required
+        if excluded_types and prop.property_type in excluded_types:
+            continue
+
+        filtered.append(prop)
+
+    dropped = len(properties) - len(filtered)
+    if dropped:
+        print(f"[Filter] Hard filters removed {dropped}/{len(properties)} properties "
+              f"(lot_size_min={prefs.lot_size_min}, single_family_only={prefs.single_family_only})",
+              flush=True)
+
+    return filtered
 
 
 def _compute_psf_map(properties: List[Property]) -> dict:

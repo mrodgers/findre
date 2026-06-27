@@ -75,6 +75,17 @@ def generate_rule_based_explanation(
                 why_matches.append(f"Has {f} (one of your must-haves)")
                 break
 
+    # Lot size
+    if preferences.lot_size_min:
+        if prop.lot_sqft and prop.lot_sqft >= preferences.lot_size_min:
+            why_matches.append(f"Lot is {prop.lot_sqft:,} sqft — meets your {preferences.lot_size_min:,} sqft minimum")
+            highlights.append(f"{prop.lot_sqft:,} sqft lot ✓")
+        elif prop.lot_sqft and prop.lot_sqft < preferences.lot_size_min:
+            tradeoffs.append(f"Lot is {prop.lot_sqft:,} sqft — below your {preferences.lot_size_min:,} sqft minimum")
+        else:
+            tradeoffs.append("Lot size not listed on Zillow — verify before scheduling a showing")
+            highlights.append("Lot size unverified — confirm with agent")
+
     # Tradeoffs
     if preferences.budget_max and prop.price > preferences.budget_max:
         over = prop.price - preferences.budget_max

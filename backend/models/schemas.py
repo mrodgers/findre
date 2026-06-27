@@ -28,6 +28,7 @@ class UserPreferences(BaseModel):
     bathrooms_min: Optional[float] = None
     sqft_min: Optional[int] = None
     lot_size_min: Optional[int] = None
+    single_family_only: bool = False
     commute_location: Optional[str] = None
     school_rating_min: Optional[float] = None
     must_haves: List[str] = Field(default_factory=list)

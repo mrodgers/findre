@@ -12,7 +12,7 @@ _geocoder = Nominatim(user_agent="find-real-estate-mvp")
 SYSTEM_PROMPT = """You are a real estate intake agent. Extract search criteria from user messages and respond with a JSON object.
 
 Required JSON keys:
-- preferences: object with these optional fields: budget_min (number), budget_max (number), location (string: city or zip), radius_miles (number, default 10), property_type (array), bedrooms_min (number), bathrooms_min (number), sqft_min (number), lot_size_min (number), must_haves (array of strings), nice_to_haves (array), deal_breakers (array), freeform_goal (string)
+- preferences: object with these optional fields: budget_min (number), budget_max (number), location (string: city or zip), radius_miles (number, default 10), property_type (array), bedrooms_min (number), bathrooms_min (number), sqft_min (number), lot_size_min (number), single_family_only (boolean — set true when user says "not shared", "private lot", "no apartments", "single family", "no tenants", "just one home on the lot"), must_haves (array of strings), nice_to_haves (array), deal_breakers (array), freeform_goal (string)
 - complete: boolean
 - message: string - brief acknowledgement of what you captured; if missing info ask for it
 - search_area: object with center_lat (null), center_lng (null), radius_miles (number), label (string description of location)
